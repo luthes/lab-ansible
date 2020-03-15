@@ -1,3 +1,4 @@
+---
 # sudo groupadd --system prometheus
 - name: Create Prometheus user
   user:
@@ -66,7 +67,7 @@
     - consoles
     - console_libraries
 
-- name: create systemd unit file
+- name: Create Prometheus Config
   template:
     src: ./templates/prometheus.yml.j2
     dest: /etc/prometheus/prometheus.yml

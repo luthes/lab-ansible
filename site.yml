@@ -3,14 +3,54 @@
   vars_files:
     - group_vars/common-secrets.yml
     - group_vars/install_docker.yml
+    - group_vars/node_exporter.yml
   roles:
     - install_docker
     - common/awscli
+    - common/node_exporter
     - cert_bot
 
 - hosts: prometheus
   vars_files:
     - group_vars/common-secrets.yml
     - group_vars/prometheus.yml
+    - group_vars/node_exporter.yml
   roles:
     - prometheus_server
+    - common/node_exporter
+
+- hosts: bind
+  vars_files:
+    - group_vars/common-secrets.yml
+    - group_vars/node_exporter.yml
+  roles:
+    - common/node_exporter
+
+- hosts: grafana
+  vars_files:
+    - group_vars/common-secrets.yml
+    - group_vars/node_exporter.yml
+  roles:
+    - common/node_exporter
+
+- hosts: k8s
+  vars_files:
+    - group_vars/common-secrets.yml
+    - group_vars/node_exporter.yml
+  roles:
+    - common/node_exporter
+
+- hosts: minecraft
+  vars_files:
+    - group_vars/common-secrets.yml
+    - group_vars/node_exporter.yml
+  roles:
+    - common/node_exporter
+
+- hosts: influxdb
+  vars_files:
+    - group_vars/common-secrets.yml
+    - group_vars/node_exporter.yml
+  roles:
+    - common/node_exporter
+

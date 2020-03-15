@@ -1,0 +1,64 @@
+---
+- name: create a docker container to generate certificates
+  docker_container:
+    name: certbot-certs
+    image: certbot/dns-route53
+    command: 
+      - "certonly -n --agree-tos"
+      - "--email steven@lutherlabs.com"
+      - "--dns-route53"
+      - "-d lutherlabs.com"
+      - "-d *.lutherlabs.com"
+      - "--server https://acme-v02.api.letsencrypt.org/directory"
+    state: present
+    volumes:
+      - certs:/etc/letsencrypt
+    env:
+      AWS_ACCESS_KEY_ID: "{{ vault_aws_access_key_id }}"
+      AWS_SECRET_ACCESS_KEY: "{{ vault_aws_secret_access_key }}"
+  register: certbot_certs_container_status
+  become: yes
+
+- name: start docker container for creating certificates
+  docker_container:
+    name: certbot-certs
+    state: started
+  when: certbot_certs_container_status.changed
+  become: yes
+
+- name: create a docker container to renew certificates
+  docker_container:
+    name: certbot-renew
+    image: certbot/dns-route53
+    command: 
+      - "renew"
+    state: present
+    volumes:
+      - certs:/etc/letsencrypt
+  become: yes
+
+- name: create a cron entry to start certbot renew
+  cron:
+    name: "renew certificates"
+    minute: "00"
+    job: "docker start certbot-renew"
+  become: yes
+
+- name: create directory for certificates 
+  file: 
+    state: directory 
+    path: "/etc/ssl/lutherlabs.com/"
+  become: yes
+
+- name: create symlinks for certificates
+  file:
+    state: link
+    src: "/var/lib/docker/volumes/certs/_data/live/lutherlabs.com/{{ item }}"
+    dest: "/etc/ssl/lutherlabs.com/{{ item }}"
+  with_items:
+    - fullchain.pem
+    - privkey.pem
+    - cert.pem
+    - chain.pem
+  become: yes
+

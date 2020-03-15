@@ -1,0 +1,9 @@
+---
+- hosts: nginx
+  vars_files:
+    - group_vars/common-secrets.yml
+    - group_vars/install_docker.yml
+  roles:
+    - install_docker
+    - common/awscli
+    - cert_bot

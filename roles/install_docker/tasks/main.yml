@@ -1,0 +1,33 @@
+---
+- name: add docker gpg key from keyserver
+  rpm_key:
+    key: "{{ docker_yum_gpg_key }}"
+    state: present
+
+- name: add docker repository
+  get_url: 
+    url: "{{ docker_yum_repo_url }}"
+    dest: '/etc/yum.repos.d/docker-{{ docker_edition }}.repo'
+    owner: root
+    group: root
+    mode: 0644
+
+- name: install dnf packages
+  dnf:
+    name: [
+      "docker-ce",
+      "ca-certificates",
+      "python3-pip"
+    ]
+    state: present
+  become: yes
+
+- name: install pip packages
+  pip:
+    name: [
+      "docker-py",
+      "awscli"
+      ]
+    state: present
+    executable: pip3
+  become: yes

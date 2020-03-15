@@ -1,0 +1,27 @@
+---
+- name: install pip packages
+  pip:
+    name: [
+      "docker-py",
+      "awscli"
+      ]
+    state: present
+    executable: pip3
+  become: yes
+
+- name: Ansible create file if it doesn't exist example
+  file:
+    path: "/home/steven/.aws/credentials"
+    state: touch
+
+- name: add credentials to aws file
+  copy:
+    content: |
+      [default]
+      aws_access_key_id = {{ vault_aws_access_key_id }}
+      aws_secret_access_key = {{ vault_aws_secret_access_key }}
+      region = us-west-2
+    dest: "/home/steven/.aws/credentials"
+
+- name: Test AWS CLI
+  shell: 'aws sts get-caller-identity'

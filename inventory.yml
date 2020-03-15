@@ -12,10 +12,16 @@ all:
     k8s-node-[1:3].lutherlabs.com:
       ansible_user: steven
       ansible_ssh_private_key_file: ~/.ssh/steven-personal.pem
+    prometheus.lutherlabs.com:
+      ansible_user: steven
+      ansible_ssh_private_key_file: ~/.ssh/steven-personal.pem
   children:
     nginx:
       hosts:
         nginx.lutherlabs.com:
+    prometheus:
+      hosts:
+        prometheus.lutherlabs.com:
     dns:
       bind-[1:2].lutherlabs.com:
     minecraft:

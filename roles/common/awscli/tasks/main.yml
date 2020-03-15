@@ -22,6 +22,3 @@
       aws_secret_access_key = {{ vault_aws_secret_access_key }}
       region = us-west-2
     dest: "/home/steven/.aws/credentials"
-
-- name: Test AWS CLI
-  shell: 'aws sts get-caller-identity'

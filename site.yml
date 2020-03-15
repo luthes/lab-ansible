@@ -7,3 +7,10 @@
     - install_docker
     - common/awscli
     - cert_bot
+
+- hosts: prometheus
+  vars_files:
+    - group_vars/common-secrets.yml
+    - group_vars/prometheus.yml
+  roles:
+    - prometheus_server

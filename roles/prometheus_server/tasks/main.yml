@@ -1,0 +1,98 @@
+# sudo groupadd --system prometheus
+- name: Create Prometheus user
+  user:
+    name: prometheus
+    state: absent
+    group: prometheus
+    comment: Prometheus Logging User
+  become: yes
+
+- name: Ensure Prometheus group exists
+  group:
+    name: prometheus
+    state: absent
+  become: yes
+
+# sudo mkdir /var/lib/prometheus
+# for i in rules rules.d files_sd; do
+#  sudo mkdir -p /etc/prometheus/${i};
+# done
+- name: Create Prometheus Directory
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+    owner: steven
+    group: steven
+  with_items:
+    - /var/lib/prometheus
+    - /etc/prometheus/rules/
+    - /etc/prometheus/rules.d/
+    - /etc/prometheus/files_sd/
+    - /home/steven/prometheus/
+  become: yes
+
+#curl -s https://api.github.com/repos/prometheus/prometheus/releases/latest \
+#  | grep browser_download_url \
+#  | grep linux-amd64 \
+#  | cut -d '"' -f 4 \
+#  | wget -qi -
+
+- name: extract promtheus zip
+  unarchive:
+    src: https://github.com/prometheus/prometheus/releases/download/v{{ prometheus_version}}/prometheus-{{ prometheus_version }}.linux-amd64.tar.gz
+    dest: /home/steven/prometheus/
+    remote_src: yes
+    extra_opts: [--strip-components=1]
+
+# sudo cp prometheus promtool /usr/local/bin/
+- name: move binary to $PATH
+  copy:
+    src: /home/steven/prometheus/prometheus
+    dest: /usr/local/bin/prometheus
+    remote_src: yes
+    group: steven
+    owner: steven
+    mode: 0755
+  become: yes
+
+# sudo cp -r consoles/ console_libraries/ /etc/prometheus
+- name: move consoles
+  copy:
+    src: /home/steven/prometheus/{{ item }}
+    dest: /etc/prometheus/
+    remote_src: yes
+  with_items:
+    - consoles
+    - console_libraries
+
+- name: create systemd unit file
+  template:
+    src: ./templates/prometheus.yml.j2
+    dest: /etc/prometheus/prometheus.yml
+    group: steven
+    owner: steven
+  become: yes
+
+- name: create systemd unit file
+  template:
+    src: ./templates/prometheus.service.j2
+    dest: /etc/systemd/system/prometheus.service
+  become: yes
+
+- name: disable firewalld systemd
+  shell: systemctl disable firewalld && systemctl stop firewalld
+  become: yes
+
+- name: enable prometheus systemd 
+  systemd:
+    name: prometheus
+    state: started
+    # This is bugged?
+    daemon_reload: yes
+    enabled: yes
+  become: yes
+
+#sudo systemctl daemon-reload
+#sudo systemctl start prometheus
+#sudo systemctl status prometheus
